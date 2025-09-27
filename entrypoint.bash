@@ -25,17 +25,17 @@ echo -e "\nNOTICE: Starting...\n"
 
 cd ~
 
+export DISPLAY="${DISPLAY:-:22}"
 
 startx &
 
-export DISPLAY="${DISPLAY:-:0}"
 export PIPEWIRE_LATENCY="128/48000"
 export XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/tmp}"
 export PIPEWIRE_RUNTIME_DIR="${PIPEWIRE_RUNTIME_DIR:-${XDG_RUNTIME_DIR:-/tmp}}"
 export PULSE_RUNTIME_PATH="${PULSE_RUNTIME_PATH:-${XDG_RUNTIME_DIR:-/tmp}/pulse}"
 export PULSE_SERVER="${PULSE_SERVER:-unix:${PULSE_RUNTIME_PATH:-${XDG_RUNTIME_DIR:-/tmp}/pulse}/native}"
 
-/app/selkies-gstreamer/selkies-gstreamer-run --addr=0.0.0.0 --port=${SELKIES_PORT} --enable_https=false --https_cert=/etc/ssl/certs/ssl-cert-snakeoil.pem --https_key=/etc/ssl/private/ssl-cert-snakeoil.key --basic_auth_user=${WEBUI_USER} --basic_auth_password=${WEBUI_PASS} --encoder=x264enc --enable_resize=false
+/app/selkies-gstreamer/selkies-gstreamer-run --addr=0.0.0.0 --port=${SELKIES_PORT} --enable_https=false --https_cert=/etc/ssl/certs/ssl-cert-snakeoil.pem --https_key=/etc/ssl/private/ssl-cert-snakeoil.key --basic_auth_user=${WEBUI_USER} --basic_auth_password=${WEBUI_PASS} --encoder=x264enc --enable_resize=true   
 
 sleep 120m
 
