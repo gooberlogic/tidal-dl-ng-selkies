@@ -1,0 +1,14 @@
+services:
+  tidal-dl:
+    build:
+      dockerfile: ./Dockerfile
+    container_name: tidal-dl
+    image: tidal-dl-debug
+    restart: unless-stopped
+    environment:
+      - WEBUI_USER=${TIDAL_DL_WEBUSER}
+      - WEBUI_PASS=${TIDAL_DL_WEBPASS}
+      - PUID=${TIDAL_DL_ID}
+      - PGID=${MEDIA_ID}
+    ports:
+      - 5577:5577
