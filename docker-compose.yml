@@ -1,25 +1,18 @@
 services:
-
   tidal-dl:
     build:
       dockerfile: ./Dockerfile
     container_name: tidal-dl
     image: tidal-dl-debug
-    restart: unless-stopped
-    #volumes:
-    #  - ./turnserver.conf:/etc/turnserver.conf
-    #depends_on:
-    #  - selkies-coturn
-    network_mode: host
+    restart: no
     environment:
-      - WEBUI_USER=${TIDAL_DL_WEBUSER}
-      - WEBUI_PASS=${TIDAL_DL_WEBPASS}
-      - PUID=${TIDAL_DL_ID}
+      - WEBUI_USER=admin
+      - WEBUI_PASS=${TIDALDL_WEBPASS}
+      - PUID=${TIDALDL_ID}
       - PGID=${MEDIA_ID}
-    #ports:
-      #- "5577:5577"
-      #- "49152-65535:49152-65535/udp"
-      #- "49152-65535:49152-65535/tcp"
-      #- "10000-20000:10000-20000/udp"
-      #- "10000-20000:10000-20000/tcp"
+      - SELKIES_PORT=5577
+    ports:
+      - "5577:5577/tcp"
+      #- "10000-10020:10000-10020/tcp"
+      #- "10000-10020:10000-10020/udp"
 
