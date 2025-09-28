@@ -11,8 +11,15 @@ services:
       - PUID=${TIDALDL_ID}
       - PGID=${MEDIA_ID}
       - SELKIES_PORT=5577
+    #network_mode: host
     ports:
       - "5577:5577/tcp"
+      #- "3478:3478/udp"
+      #- "3478:3478/tcp"
       #- "10000-10020:10000-10020/tcp"
       #- "10000-10020:10000-10020/udp"
+    volumes:
+      - "./docker-data/data:/data"
+      - "./docker-data/music:/music"
+      - "./docker-data/music_videos:/music_videos"
 
