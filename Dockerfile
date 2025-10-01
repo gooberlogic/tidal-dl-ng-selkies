@@ -10,17 +10,25 @@ ENV PGID=1001
 ENV CHMOD_FILE=770
 ENV CHMOD_DIR=771
 
-ENV SELKIES_PORT=5577
-
 ENV GTK_THEME=Adwaita:dark
 ENV XCURSOR_SIZE=32
-ENV XVFB_DPI=115
+ENV XVFB_DPI=110
 
 ENV DBUS_SYSTEM_BUS_ADDRESS="unix:path=${XDG_RUNTIME_DIR:-/tmp}/dbus-system-bus"
 
 ENV NOTICE="\nNOTICE: "
 ENV NOTICE_USER="\nNOTICE: [USER] "
 ENV NOTICE_END="...\n"
+
+ENV SELKIES_PORT=5577
+ENV SELKIES_FRAMERATE=30
+ENV SELKIES_UI_SIDEBAR_SHOW_APPS=False
+ENV SELKIES_AUDIO_ENABLED=False
+ENV SELKIES_SECOND_SCREEN=False
+ENV SELKIES_UI_SIDEBAR_SHOW_SHARING=False
+ENV SELKIES_UI_SIDEBAR_SHOW_AUDIO_SETTINGS=False
+
+ENV SNAKEOIL_HTTPS=False
 
 RUN apt update -y; apt upgrade -y; apt install -y software-properties-common; add-apt-repository ppa:mozillateam/ppa; \
     # selkies dependencies
@@ -42,9 +50,10 @@ RUN cd /app; wget https://github.com/selkies-project/selkies/archive/refs/heads/
     pip install . --break-system-packages --ignore-installed
 
 # selkies frontend
-RUN git clone https://github.com/selkies-project/selkies.git /app/src; cd /app/src; cd addons/gst-web-core; npm install; npm run build; cp dist/selkies-core.js ../selkies-dashboard/src; \
+RUN git clone https://github.com/selkies-project/selkies.git /app/src; cd /app/src/addons/gst-web-core; npm install; npm run build; cp dist/selkies-core.js ../selkies-dashboard/src; \
     cd ../selkies-dashboard; npm install; npm run build; mkdir dist/src dist/nginx; cp ../universal-touch-gamepad/universalTouchGamepad.js dist/src/; \
-    cp ../gst-web-core/nginx/* dist/nginx/; cp -r ../gst-web-core/dist/jsdb dist/; mkdir /app/frontend; cp -ar dist/* /app/frontend
+    cp ../gst-web-core/nginx/* dist/nginx/; cp -r ../gst-web-core/dist/jsdb dist/; mkdir /app/frontend; cp -ar dist/* /app/frontend; \
+    ffmpeg -i /app/selkies-main/docs/assets/logo/favicon.ico /app/frontend/icon.png; sed -i 's/document.title="Selkies"/document.title="tidal-dl"/g' /app/frontend/assets/index-CuGcaTCB.js
 
 RUN echo "allowed_users = anybody" >> /etc/X11/Xwrapper.config
 
@@ -55,6 +64,10 @@ RUN chmod +r /wallpaper.png
 
 
 RUN pip install --upgrade "tidal-dl-ng[gui]" --break-system-packages --ignore-installed
+
+
+COPY licenses /licenses
+RUN chmod 555 -R /licenses
 
 COPY entrypoint.bash /entrypoint.bash
 RUN chmod +x /entrypoint.bash

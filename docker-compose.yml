@@ -3,14 +3,16 @@ services:
     build:
       dockerfile: ./Dockerfile
     container_name: tidal-dl
+    hostname: tidal-dl
     image: tidal-dl-debug
     restart: no
     environment:
       - WEBUI_PORT=5578
       - WEBUI_USER=admin
-      - WEBUI_PASS=${TIDALDL_PASS}
-      - PUID=${TIDALDL_ID}
-      - PGID=${MEDIA_ID}
+      - WEBUI_PASS=changeme
+      - PUID=4000
+      - PGID=4000
+      - SNAKEOIL_HTTPS=whatever
     ports:
       - "5578:5578/tcp"
     volumes:

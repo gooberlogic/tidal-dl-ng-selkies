@@ -19,6 +19,10 @@ map \$http_upgrade \$connection_upgrade {
 server {
     listen ${WEBUI_PORT};
 
+    #server_name localhost;
+    #ssl_certificate /etc/ssl/certs/snakeoil.crt;
+    #ssl_certificate_key /etc/ssl/private/snakeoil.key;
+
     location / {
         auth_basic "login required";
         auth_basic_user_file /etc/nginx/.htpasswd;
@@ -73,6 +77,45 @@ server {
 }
 EOF
 
+cat <<EOF > /etc/nginx/conf.d/selkies-san.cnf
+[req]
+distinguished_name = req_distinguished_name
+req_extensions = v3_req
+prompt = no
+
+[req_distinguished_name]
+CN = localhost
+
+[v3_req]
+subjectAltName = @alt_names
+
+[alt_names]
+DNS.1 = localhost
+EOF
+
+if [ "$SNAKEOIL_HTTPS" != "False" ]; then
+
+  # minimal method
+  #openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+  #  -keyout /etc/ssl/private/snakeoil.key -out /etc/ssl/certs/snakeoil.crt \
+  #  -subj "/CN=localhost"
+  
+  openssl req -x509 -newkey rsa:2048 -nodes -days 3650 \
+  -keyout myca.key -out myca.crt -subj "/CN=localhost"
+
+  openssl genrsa -out /etc/ssl/private/snakeoil.key 2048
+
+  openssl req -new -key /etc/ssl/private/snakeoil.key \
+    -out snakeoil.csr -config /etc/nginx/conf.d/selkies-san.cnf
+  
+  openssl x509 -req -in snakeoil.csr -CA myca.crt -CAkey myca.key \
+    -CAcreateserial -out /etc/ssl/certs/snakeoil.crt -days 365 \
+    -extensions v3_req -extfile /etc/nginx/conf.d/selkies-san.cnf
+
+  sed -i "s/listen ${WEBUI_PORT};/listen ${WEBUI_PORT} ssl;/g" /etc/nginx/conf.d/selkies.conf
+  sed -i "s/\#//g" /etc/nginx/conf.d/selkies.conf
+fi
+
 mkdir -p /var/log/nginx
 nginx &
 
@@ -99,7 +142,7 @@ echo "xrdb ~/.Xresources; while true; do /usr/local/bin/tidal-dl-ng-gui; done" >
 
 chmod +x /home/xyz/.config/openbox/autostart
 
-cat <<EOF > /home/xyz/.Xresources
+cat <<'EOF' > /home/xyz/.Xresources
 Xcursor.theme: Breeze_Snow
 *.foreground: #ffffff
 *.background: #000000
@@ -114,16 +157,16 @@ EOF
 
 gosu xyz /bin/bash -s <<'EOF'
 
-echo -e "${NOTICE_USER}Starting Xvfb${NOTICE_END}"
-
-cd ~
+cd
 
 export DISPLAY="${DISPLAY:-:20}"
 export XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/tmp}"
-#export PIPEWIRE_LATENCY="128/48000"
-#export PIPEWIRE_RUNTIME_DIR="${PIPEWIRE_RUNTIME_DIR:-${XDG_RUNTIME_DIR:-/tmp}}"
-#export PULSE_RUNTIME_PATH="${PULSE_RUNTIME_PATH:-${XDG_RUNTIME_DIR:-/tmp}/pulse}"
-#export PULSE_SERVER="${PULSE_SERVER:-unix:${PULSE_RUNTIME_PATH:-${XDG_RUNTIME_DIR:-/tmp}/pulse}/native}"
+export PIPEWIRE_LATENCY="128/48000"
+export PIPEWIRE_RUNTIME_DIR="${PIPEWIRE_RUNTIME_DIR:-${XDG_RUNTIME_DIR:-/tmp}}"
+export PULSE_RUNTIME_PATH="${PULSE_RUNTIME_PATH:-${XDG_RUNTIME_DIR:-/tmp}/pulse}"
+export PULSE_SERVER="${PULSE_SERVER:-unix:${PULSE_RUNTIME_PATH:-${XDG_RUNTIME_DIR:-/tmp}/pulse}/native}"
+
+echo -e "${NOTICE_USER}Starting Xvfb${NOTICE_END}"
 
 Xvfb "${DISPLAY}" -screen 0 "1920x1080x24" -dpi ${XVFB_DPI} +extension "COMPOSITE" +extension "DAMAGE" +extension "GLX" +extension "RANDR" +extension "RENDER" +extension "MIT-SHM" +extension "XFIXES" +extension "XTEST" +iglx +render -nolisten "tcp" -ac -noreset -shmem &
 
@@ -143,6 +186,6 @@ feh -bg /wallpaper.png --bg-tile &
 
 echo -e "${NOTICE_USER}Starting selkies${NOTICE_END}"
 
-selkies --audio-enabled=False
+selkies
 
 EOF
