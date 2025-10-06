@@ -40,6 +40,8 @@ xyz@tidal-dl:~$ tidal-dl-ng
 
 - **If `SNAKEOIL_HTTPS` is `False`, a HTTPS reverse proxy will be required for connecting externally.**
 
+- **If using Pi-hole, increase rate limit from `1000/60` to `10000/60` (queries/seconds) in expert DNS settings or your Pi-hole instance may block you mid download.**
+
 - Audio in an unbearable state, disabled in selkies.
 
 - These paths are symlinked within the container:
